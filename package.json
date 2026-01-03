@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "dayflow-hrms",
   "version": "1.0.0",
@@ -18,3 +19,25 @@
     "concurrently": "^8.2.2"
   }
 }
+=======
+{
+  "name": "dayflow-hrms",
+  "version": "1.0.0",
+  "description": "Human Resource Management System - Dayflow HRMS",
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev-simple": "node start-dev.js",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "keywords": ["hrms", "mern", "react", "node", "express", "mongodb"],
+  "author": "Odoo Hackathon 2025",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+>>>>>>> 01564c405b60dda14773812ac43154df96b25e8d
