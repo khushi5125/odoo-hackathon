@@ -17,22 +17,37 @@ export const useApiQuery = (queryKey, queryFn, options = {}) => {
 export const useApiMutation = (mutationFn, options = {}) => {
   const queryClient = useQueryClient();
 
+  // Create a shallow copy of options but remove onError/onSuccess handlers
+  // so we can wrap them without infinite recursion/overwriting.
+  const opts = { ...options };
+  delete opts.onError;
+  delete opts.onSuccess;
+
   return useMutation(mutationFn, {
-    onError: (error) => {
+    ...opts,
+    onError: (error, variables, context) => {
       const message = handleApiError(error);
       toast.error(message);
+      if (options?.onError) {
+        options.onError(error, variables, context);
+      }
     },
     onSuccess: (data, variables, context) => {
-      if (options.successMessage) {
+      // generic success handling
+      if (options?.successMessage) {
         toast.success(options.successMessage);
       }
-      if (options.invalidateQueries) {
+
+      if (options?.invalidateQueries) {
         options.invalidateQueries.forEach((queryKey) => {
           queryClient.invalidateQueries(queryKey);
         });
       }
+
+      if (options?.onSuccess) {
+        options.onSuccess(data, variables, context);
+      }
     },
-    ...options,
   });
 };
 
@@ -41,20 +56,35 @@ export const useAuth = () => {
   const queryClient = useQueryClient();
 
   const loginMutation = useApiMutation(
-    ({ email, password }) => 
+    ({ email, password }) =>
       import('../services').then(({ authAPI }) => authAPI.login({ email, password })),
     {
-      onSuccess: (data) => {
-        localStorage.setItem('token', data.token);
-        queryClient.setQueryData(['auth', 'user'], data.user);
+      onSuccess: (response) => {
+        // axios responses are in response.data
+        const payload = response?.data || response;
+        if (payload?.token) {
+          localStorage.setItem('token', payload.token);
+        }
+        if (payload?.user) {
+          queryClient.setQueryData(['auth', 'user'], payload.user);
+        }
       },
     }
   );
 
   const registerMutation = useApiMutation(
-    (userData) => 
+    (userData) =>
       import('../services').then(({ authAPI }) => authAPI.register(userData)),
     {
+      onSuccess: (response) => {
+        const payload = response?.data || response;
+        if (payload?.token) {
+          localStorage.setItem('token', payload.token);
+        }
+        if (payload?.user) {
+          queryClient.setQueryData(['auth', 'user'], payload.user);
+        }
+      },
       successMessage: 'Registration successful!',
     }
   );

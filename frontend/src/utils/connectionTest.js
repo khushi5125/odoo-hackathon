@@ -25,32 +25,37 @@ export const testBackendConnection = async () => {
   }
 };
 
+// (only the testAuthEndpoint change)
 export const testAuthEndpoint = async () => {
   try {
     console.log('Testing auth endpoint...');
-    
+
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const response = await fetch('/api/auth/me', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
-    
+
     console.log('Auth endpoint response status:', response.status);
-    
+
     if (response.status === 401) {
       console.log('Auth endpoint working (requires authentication as expected)');
-      return { success: true, message: 'Auth endpoint working' };
+      return { success: true, message: 'Auth endpoint working (unauthenticated)' };
     }
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     console.log('Auth endpoint test successful:', data);
     return { success: true, data };
-    
+
   } catch (error) {
     console.error('Auth endpoint test failed:', error);
     return { success: false, error: error.message };
